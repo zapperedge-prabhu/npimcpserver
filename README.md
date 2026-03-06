@@ -53,7 +53,7 @@ Go to **[claude.ai](https://claude.ai)** and sign up for a free account if you d
 2. Click your **profile icon** (top right corner)
 3. Click **Settings**
 
-   ![Settings Menu](https://via.placeholder.com/600x100/f0f0f0/333?text=Profile+Icon+→+Settings)
+   [Settings Menu](https://via.placeholder.com/600x100/f0f0f0/333?text=Profile+Icon+→+Settings)
 
 4. In the left sidebar, click **Connectors**
 5. Click the **"+ Add connector"** or **"Add MCP Server"** button
