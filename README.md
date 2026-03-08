@@ -15,6 +15,7 @@ A free, AI-powered NPI registry lookup tool that lets you search **9.3 million+ 
 - [Step 2 — Set Up Other MCP Clients](#step-2--set-up-other-mcp-clients)
 - [Step 3 — Verify It's Working](#step-3--verify-its-working)
 - [How to Search — With Examples](#how-to-search--with-examples)
+- [Check OIG Exclusions (Compliance)](#check-oig-exclusions-compliance)
 - [Test Cases for Medical Coders](#test-cases-for-medical-coders)
 - [Tips & Tricks](#tips--tricks)
 - [FAQ](#faq)
@@ -33,8 +34,13 @@ A free, AI-powered NPI registry lookup tool that lets you search **9.3 million+ 
 | Find hospitals & clinics | *"Find organizations with Hospital in the name in Brooklyn NY"* |
 | Search by ZIP code | *"Find providers in ZIP 90210"* |
 | Verify a provider's specialty | *"What specialty is NPI 1538283494?"* |
+| Check OIG exclusion status | *"Is NPI 1972902351 on the OIG exclusion list?"* |
+| Check provider by name + DOB | *"Check if John Smith DOB 1975-04-12 is excluded from Medicare"* |
+| Check an organisation name | *"Is ABC Home Health on the OIG exclusion list?"* |
 
 > **Specialty searches now support plain English.** You can search by description ("cardiology", "family medicine", "nurse practitioner") or by taxonomy code (`207RC0000X`). Both work.
+
+> **OIG exclusion checks are built in.** Ask Claude to check any provider by NPI, name + date of birth, or organisation name against the 82,000+ record OIG LEIE exclusion list — updated monthly.
 
 ---
 
@@ -333,6 +339,90 @@ Show me the next 10
 
 ---
 
+## Check OIG Exclusions (Compliance)
+
+The server checks providers against the **OIG LEIE (List of Excluded Individuals/Entities)** — the federal list of people and organisations barred from billing Medicare and Medicaid. The list contains 82,000+ records and is refreshed monthly.
+
+> **Why this matters:** Billing Medicare or Medicaid for services performed by an excluded provider can result in civil monetary penalties of up to $20,000 per claim and triple damages.
+
+### Check by NPI (recommended)
+
+When you provide an NPI, the server automatically looks up the provider name and checks both the NPI and name against the exclusion list.
+
+```
+Is NPI 1972902351 on the OIG exclusion list?
+```
+```
+Check provider 1538283494 for OIG sanctions
+```
+```
+Run an OIG compliance check on NPI 1689614562
+```
+
+### Check by Name + Date of Birth
+
+Use this when you do not have the NPI or want to verify by identity.
+
+```
+Check if DEBHANNA AAKER born 1982-03-11 is excluded from Medicare
+```
+```
+Is there an OIG exclusion for John Smith DOB 1975-04-12?
+```
+
+### Check by Organisation Name
+
+```
+Is ABC Home Health on the OIG exclusion list?
+```
+```
+Check if 1 Best Care is excluded from Medicaid
+```
+
+### What the Response Looks Like
+
+**If excluded:**
+```
+status: EXCLUDED
+⚠ CRITICAL WARNING: This provider appears on the OIG LEIE Exclusion List.
+  Billing Medicare or Medicaid for services by an excluded provider is
+  prohibited and may result in civil monetary penalties.
+
+match_type: NPI
+name: 101 FIRST CARE PHARMACY INC
+exclusion_type: 1128b8
+exclusion_date: 2022-03-20
+specialty: PHARMACY
+address: 609 W 191ST STREET, NEW YORK, NY 10040
+
+action_required: Do NOT submit claims for this provider.
+verify_at: https://exclusions.oig.hhs.gov
+```
+
+**If clear:**
+```
+status: CLEAR
+Provider is clear of OIG sanctions. No match found in the LEIE exclusions list.
+provider: CATHERINE WINTER (NPI 1538283494, Individual, CA)
+```
+
+### OIG Exclusion Type Reference
+
+| Code | Meaning |
+|------|---------|
+| `1128a1` | Conviction for Medicare/Medicaid fraud |
+| `1128a2` | Conviction for patient abuse or neglect |
+| `1128a3` | Felony conviction for healthcare-related fraud |
+| `1128a4` | Felony conviction for controlled substances |
+| `1128b1` | Misdemeanor conviction for healthcare fraud |
+| `1128b4` | License revocation or suspension |
+| `1128b5` | Excluded or suspended by federal/state health program |
+| `1128b8` | Civil monetary penalty |
+
+Full list: [oig.hhs.gov/exclusions/authorities.asp](https://oig.hhs.gov/exclusions/authorities.asp)
+
+---
+
 ## Test Cases for Medical Coders
 
 Use these to verify the tool works correctly for billing and coding scenarios.
@@ -523,6 +613,71 @@ Look up NPI 1538283494 and tell me the specialty description
 
 ---
 
+### Test 18 — OIG Check: Excluded Provider by NPI
+**Prompt:**
+```
+Check NPI 1972902351 for OIG exclusions
+```
+**Expected result:**
+- Status: EXCLUDED
+- Match type: NPI
+- Name: 101 FIRST CARE PHARMACY INC (auto-looked up from NPI registry)
+- Exclusion type: 1128b8 (civil monetary penalty)
+- Exclusion date: 2022-03-20
+- Includes critical warning and "Do NOT submit claims" notice
+
+**Typical response time:** 1–2 seconds
+
+---
+
+### Test 19 — OIG Check: Clear Provider by NPI
+**Prompt:**
+```
+Check NPI 1538283494 for OIG exclusions
+```
+**Expected result:**
+- Status: CLEAR
+- Provider: CATHERINE WINTER, Individual, CA
+- No warning or action required
+
+**Typical response time:** 2 seconds
+
+---
+
+### Test 20 — OIG Check: Excluded by Name + DOB
+**Prompt:**
+```
+Is DEBHANNA AAKER born 1982-03-11 on the OIG exclusion list?
+```
+**Expected result:**
+- Status: EXCLUDED
+- Match type: Name+DOB
+- Specialty: HOME HEALTH AGENCY
+- Exclusion type: 1128a1 (Medicare/Medicaid fraud conviction)
+- Exclusion date: 2024-08-20
+- Address: GRAND FORKS, ND
+
+**Typical response time:** under 1 second
+
+---
+
+### Test 21 — OIG Check: Excluded Organisation by Name
+**Prompt:**
+```
+Is 1 Best Care on the OIG exclusion list?
+```
+**Expected result:**
+- Status: EXCLUDED
+- Match type: Organization Name
+- Name: 1 BEST CARE, INC (fuzzy match)
+- Specialty: HOME HEALTH AGENCY
+- Exclusion date: 2023-05-18
+- Address: SAINT PAUL, MN
+
+**Typical response time:** under 1 second
+
+---
+
 ### Quick Pass Checklist
 
 | # | Test | Pass if... | Typical Time |
@@ -544,8 +699,12 @@ Look up NPI 1538283494 and tell me the specialty description
 | 15 | Description: "family medicine" | Returns Family Medicine providers | 1–2s |
 | 16 | Unknown specialty term | Returns empty + helpful note | < 1s |
 | 17 | Lookup taxonomy description | Shows plain-English specialty name | < 1s |
+| 18 | OIG check — excluded NPI | Returns EXCLUDED with full exclusion record | 1–2s |
+| 19 | OIG check — clear NPI | Returns CLEAR with provider name | 1–2s |
+| 20 | OIG check — name + DOB | Returns EXCLUDED with match_type Name+DOB | < 1s |
+| 21 | OIG check — org name | Returns EXCLUDED with fuzzy org match | < 1s |
 
-All 17 passing = Tool is fully working for medical coding use.
+All 21 passing = Tool is fully working for medical coding and compliance use.
 
 ---
 
@@ -573,8 +732,13 @@ The description search translates your term to taxonomy codes automatically. If 
 
 **Verify before submitting claims** — Always confirm:
 1. NPI is valid (passes Luhn check)
-2. Provider specialty matches what was billed
-3. Practice address matches claim address
+2. Provider is not on the OIG exclusion list
+3. Provider specialty matches what was billed
+4. Practice address matches claim address
+
+**OIG checks are automatic when you give an NPI** — The server looks up the provider name from the NPI registry, then checks the exclusion list. You do not need to type out the name separately.
+
+**Always verify exclusion hits at the OIG website** — The tool links you directly to `https://exclusions.oig.hhs.gov` for final verification before taking action.
 
 ---
 
@@ -606,6 +770,18 @@ A: For bulk automation, contact the server maintainer about API access. Claude i
 
 **Q: My MCP client isn't listed. Will it work?**
 A: Any MCP client that supports SSE transport should work. Use the SSE URL: `https://npimcpserver.zapperedge.com/sse`
+
+**Q: How current is the OIG exclusion data?**
+A: The server downloads the OIG LEIE `UPDATED.csv` file from `oig.hhs.gov` on startup and refreshes it every 28 days. The OIG publishes a new version monthly. You can see the last download date by asking *"Check the NPI database status"*.
+
+**Q: What does "EXCLUDED" mean — do I have to fire the provider?**
+A: EXCLUDED means the provider appears on the federal OIG LEIE list and cannot bill Medicare or Medicaid. The result includes the exclusion type and date. The tool links you to `https://exclusions.oig.hhs.gov` so you can verify the match and confirm reinstatement date if applicable. Always consult your compliance officer before taking action.
+
+**Q: Can I check someone with only a name and no NPI?**
+A: Yes. You can check by last name + first name alone, or add date of birth for a more precise match. Organisation name searches are also supported using fuzzy matching.
+
+**Q: What if the OIG check returns CLEAR but I'm still suspicious?**
+A: CLEAR means no match was found in the current LEIE list. You should still verify at `https://exclusions.oig.hhs.gov` directly for final confirmation, especially for high-risk scenarios.
 
 ---
 
