@@ -28,12 +28,13 @@ A free, AI-powered NPI registry lookup tool that lets you search **9.3 million+ 
 | Look up a provider by NPI | *"Look up NPI 1083738934"* |
 | Verify an NPI is valid | *"Is NPI 1234567890 valid?"* |
 | Find doctors by name & state | *"Find Dr. Smith in California"* |
+| Find specialists by description | *"Find cardiologists in Houston TX"* |
 | Find specialists by taxonomy code | *"Find providers with taxonomy 207RC0000X in Houston TX"* |
 | Find hospitals & clinics | *"Find organizations with Hospital in the name in Brooklyn NY"* |
 | Search by ZIP code | *"Find providers in ZIP 90210"* |
 | Verify a provider's specialty | *"What specialty is NPI 1538283494?"* |
 
-> **Important — Specialty Searches:** The NPPES dataset does not include human-readable specialty descriptions — only taxonomy codes (e.g. `207RC0000X`). Searching a word like "cardiology" will not return results. Always use the taxonomy code. See the [Common Taxonomy Codes](#common-taxonomy-codes-for-medical-coders) table below.
+> **Specialty searches now support plain English.** You can search by description ("cardiology", "family medicine", "nurse practitioner") or by taxonomy code (`207RC0000X`). Both work.
 
 ---
 
@@ -189,11 +190,9 @@ Expected: Returns "Lois M Lumpkin, Registered Nurse, Martinez CA"
 
 **Check 3 — Search works:**
 ```
-Find providers with taxonomy 207RC0000X in Modesto CA
+Find cardiologists in Modesto CA
 ```
-Expected: Returns a list of cardiovascular disease (cardiology) providers with addresses and phone numbers
-
-> Note: Use the taxonomy code `207RC0000X`, not the word "cardiology". See [Why Taxonomy Codes Are Required](#faq) in the FAQ.
+Expected: Returns a list of cardiovascular disease providers with addresses and phone numbers
 
 If all 3 pass — you're good to go!
 
@@ -245,21 +244,38 @@ Look for a nurse named Catherine in California
 Find providers with last name Smith and taxonomy 207RC0000X in Florida
 ```
 ```
-Search for Dr. Williams with taxonomy 207X00000X in Chicago IL
+Search for cardiologists named Williams in Chicago IL
 ```
 
 ---
 
-### Find Specialists by Taxonomy Code
+### Find Specialists by Description or Taxonomy Code
 
-> **Specialty searches require taxonomy codes.** The NPPES database stores taxonomy codes only — descriptions like "cardiology" or "surgeon" are not stored and cannot be searched. Use the code table below.
+You can search by plain English description or by exact taxonomy code — both work:
 
+**By description (plain English):**
+```
+Find cardiologists in Houston TX
+```
+```
+Find family medicine doctors in ZIP code 900*
+```
+```
+Find nurse practitioners in California
+```
+```
+Find orthopedic surgeons in Chicago IL
+```
+
+**By taxonomy code (exact match):**
 ```
 Find providers with taxonomy 207RC0000X in Houston TX
 ```
 ```
 Search for taxonomy 207Q00000X in ZIP code 900*
 ```
+
+> When you search by description, the server translates your term to matching taxonomy codes automatically, then searches providers by code. If no codes match your term, it will say so and suggest alternatives.
 
 #### Common Taxonomy Codes for Medical Coders
 
@@ -329,6 +345,7 @@ Use these to verify the tool works correctly for billing and coding scenarios.
 Validate NPI 1538283494
 ```
 **Expected result:** Valid — format correct, Luhn check digit passes
+**Typical response time:** under 1 second
 
 ---
 
@@ -338,6 +355,7 @@ Validate NPI 1538283494
 Validate NPI 1234567890
 ```
 **Expected result:** Invalid — fails Luhn check digit (useful for catching claim errors)
+**Typical response time:** under 1 second
 
 ---
 
@@ -349,9 +367,11 @@ Look up NPI 1538283494
 **Expected result:**
 - Name: Catherine Liane Winter, O.D.
 - Type: Individual
-- Specialty: Optometry (taxonomy `152W00000X`)
+- Specialty: Optometry (taxonomy `152W00000X`, description: "Optometrist")
 - Location: 1630 N Main St, Salinas, CA 93906
 - Phone: (831) 443-4422
+
+**Typical response time:** under 1 second
 
 ---
 
@@ -365,6 +385,8 @@ Look up NPI 1689614562
 - Type: Organization
 - Location: 1540 Florida Ave, Modesto CA
 
+**Typical response time:** under 1 second
+
 ---
 
 ### Test 5 — Find a Provider by Name and State
@@ -373,17 +395,17 @@ Look up NPI 1689614562
 Find providers with last name JOHNSON in New York
 ```
 **Expected result:** List of providers named Johnson in NY with NPI numbers, specialties, and addresses
+**Typical response time:** 3–5 seconds
 
 ---
 
-### Test 6 — Find Specialists in a City
+### Test 6 — Find Specialists in a City (by Taxonomy Code)
 **Prompt:**
 ```
 Find providers with taxonomy 207RC0000X in Modesto California
 ```
 **Expected result:** List of cardiovascular disease (cardiology) providers in Modesto CA
-
-> Use the taxonomy code directly. Searching "cardiologists" as a word will not return results.
+**Typical response time:** 4–6 seconds
 
 ---
 
@@ -393,6 +415,7 @@ Find providers with taxonomy 207RC0000X in Modesto California
 Find NPI-2 organizations with HOSPITAL in the name in New York state
 ```
 **Expected result:** List of hospital organizations in NY with addresses
+**Typical response time:** 3–5 seconds
 
 ---
 
@@ -402,6 +425,7 @@ Find NPI-2 organizations with HOSPITAL in the name in New York state
 Find providers in ZIP code 10001
 ```
 **Expected result:** Providers in the 10001 ZIP code (Manhattan, NY)
+**Typical response time:** 3–5 seconds
 
 ---
 
@@ -411,6 +435,7 @@ Find providers in ZIP code 10001
 Find providers with last name starting with JOHN in California, limit 5
 ```
 **Expected result:** Mix of JOHN, JOHNSON, JOHNS, JOHNSTONE etc. in CA
+**Typical response time:** 3–5 seconds
 
 ---
 
@@ -420,6 +445,7 @@ Find providers with last name starting with JOHN in California, limit 5
 What specialty does NPI 1962485938 practice?
 ```
 **Expected result:** Mohamed Hassan, MD — Cardiovascular Disease (taxonomy `207RC0000X`), Modesto CA
+**Typical response time:** under 1 second
 
 ---
 
@@ -429,6 +455,7 @@ What specialty does NPI 1962485938 practice?
 Is there a provider named WINTER practicing in California?
 ```
 **Expected result:** List of providers named Winter in CA with their specialties
+**Typical response time:** 2–4 seconds
 
 ---
 
@@ -442,27 +469,83 @@ Then:
 Show the next 5
 ```
 **Expected result:** Two distinct pages of results with no duplicate NPIs
+**Typical response time:** 3–5 seconds per page
+
+---
+
+### Test 13 — Search by Specialty Description
+**Prompt:**
+```
+Find cardiologists in Texas
+```
+**Expected result:** List of cardiology providers in TX — description translated to matching taxonomy codes automatically
+**Typical response time:** 1–2 seconds
+
+---
+
+### Test 14 — Search by Broad Specialty Term
+**Prompt:**
+```
+Find cardiovascular disease specialists in Texas
+```
+**Expected result:** List of providers with taxonomy `207RC0000X` (Cardiovascular Disease Physician) in TX
+**Typical response time:** 1–2 seconds
+
+---
+
+### Test 15 — Search by Multi-Word Specialty
+**Prompt:**
+```
+Find family medicine doctors in California
+```
+**Expected result:** List of Family Medicine providers across CA
+**Typical response time:** 1–2 seconds
+
+---
+
+### Test 16 — Unrecognized Specialty Term
+**Prompt:**
+```
+Find xyzfakespecialty providers in Texas
+```
+**Expected result:** No results returned, with a message explaining no matching taxonomy codes were found and suggesting alternatives
+**Typical response time:** under 1 second
+
+---
+
+### Test 17 — Taxonomy Description in Lookup Result
+**Prompt:**
+```
+Look up NPI 1538283494 and tell me the specialty description
+```
+**Expected result:** Specialty shows "Optometrist" as a human-readable description alongside the code `152W00000X`
+**Typical response time:** under 1 second
 
 ---
 
 ### Quick Pass Checklist
 
-| # | Test | Pass if... |
-|---|------|------------|
-| 1 | Validate good NPI | Returns "valid" |
-| 2 | Validate bad NPI | Returns "invalid" |
-| 3 | Lookup individual | Returns full provider details |
-| 4 | Lookup organization | Returns org name and address |
-| 5 | Name + state search | Returns provider list |
-| 6 | City + taxonomy code | Returns specialists in that city |
-| 7 | Hospital org search | Returns hospital organizations |
-| 8 | ZIP code search | Returns providers in that ZIP |
-| 9 | Wildcard search | Returns multiple name variants |
-| 10 | Specialty verification | Returns correct taxonomy |
-| 11 | State provider check | Returns providers in state |
-| 12 | Pagination | Page 2 has different results than page 1 |
+| # | Test | Pass if... | Typical Time |
+|---|------|------------|-------------|
+| 1 | Validate good NPI | Returns "valid" | < 1s |
+| 2 | Validate bad NPI | Returns "invalid" | < 1s |
+| 3 | Lookup individual | Returns full provider details with description | < 1s |
+| 4 | Lookup organization | Returns org name and address | < 1s |
+| 5 | Name + state search | Returns provider list | 3–5s |
+| 6 | City + taxonomy code | Returns specialists in that city | 4–6s |
+| 7 | Hospital org search | Returns hospital organizations | 3–5s |
+| 8 | ZIP code search | Returns providers in that ZIP | 3–5s |
+| 9 | Wildcard search | Returns multiple name variants | 3–5s |
+| 10 | Specialty verification | Returns correct taxonomy + description | < 1s |
+| 11 | State provider check | Returns providers in state | 2–4s |
+| 12 | Pagination | Page 2 has different results than page 1 | 3–5s |
+| 13 | Description: "cardiologists" | Returns cardiology providers | 1–2s |
+| 14 | Description: "cardiovascular" | Returns `207RC0000X` providers | 1–2s |
+| 15 | Description: "family medicine" | Returns Family Medicine providers | 1–2s |
+| 16 | Unknown specialty term | Returns empty + helpful note | < 1s |
+| 17 | Lookup taxonomy description | Shows plain-English specialty name | < 1s |
 
-All 12 passing = Tool is fully working for medical coding use.
+All 17 passing = Tool is fully working for medical coding use.
 
 ---
 
@@ -472,13 +555,15 @@ All 12 passing = Tool is fully working for medical coding use.
 > *"I need to verify the NPI for a cardiologist in Houston"*
 > *"Can you find all the orthopedic surgeons in ZIP 60601?"*
 
-**Always use taxonomy codes for specialty searches** — The database stores codes, not descriptions. Searching "cardiology", "surgeon", or "dermatologist" will return no results. Use the exact code:
-> Instead of: *"Find cardiologists in Houston"*
-> Use: *"Find providers with taxonomy 207RC0000X in Houston TX"*
+**Search by description or code** — Both work for specialty searches:
+> *"Find cardiologists in Houston"* — works
+> *"Find providers with taxonomy 207RC0000X in Houston TX"* — also works
+
+The description search translates your term to taxonomy codes automatically. If you use a very specific subspecialty name and get no results, try a broader term or use the taxonomy code directly.
 
 **Narrow down large results** — If you get too many results, add more filters:
 > *"Find Smith in CA"* → too many results
-> *"Find Dr. Smith with taxonomy 208600000X in Los Angeles CA"* → more specific
+> *"Find Dr. Smith who is a general surgeon in Los Angeles CA"* → more specific
 
 **Wildcard for partial matches** — Add `*` to catch name variations:
 > `JOHN*` matches JOHN, JOHNSON, JOHNSTONE, JOHNS
@@ -504,14 +589,17 @@ A: Yes, completely free. The MCP server is hosted and open for public testing. C
 **Q: How current is the data?**
 A: Updated weekly from CMS. You can ask *"Check the NPI database status"* to see the exact last update date.
 
-**Q: Why can't I search by specialty name like "cardiologist" or "surgeon"?**
-A: The NPPES dataset does not include human-readable specialty descriptions — only taxonomy codes like `207RC0000X`. The raw data published by CMS omits the description column entirely. To search by specialty, use the taxonomy code. See the [Common Taxonomy Codes](#common-taxonomy-codes-for-medical-coders) table above, or look up any code at [nucc.org](https://www.nucc.org/index.php/code-sets-mainmenu-41/provider-taxonomy-mainmenu-40).
+**Q: Can I search by specialty name like "cardiologist" or "surgeon"?**
+A: Yes. You can search by plain-English description such as "cardiology", "family medicine", "nurse practitioner", or "orthopedic surgery". The server automatically translates your term to matching taxonomy codes and searches providers by those codes. You can also use the exact taxonomy code (e.g. `207RC0000X`) for a precise match. See the [Common Taxonomy Codes](#common-taxonomy-codes-for-medical-coders) table, or look up any code at [nucc.org](https://www.nucc.org/index.php/code-sets-mainmenu-41/provider-taxonomy-mainmenu-40).
+
+**Q: Why are some searches slower than others?**
+A: It depends on the type of search. Lookups by NPI and validates are nearly instant (under 1 second). Taxonomy description searches are fast at 1–2 seconds. Name and address searches take 3–5 seconds because they include a total count across 9.3 million records.
 
 **Q: Can I look up deactivated NPIs?**
 A: The database includes all records from NPPES. Provider status (active/inactive) is included in the results.
 
 **Q: What if I get no results?**
-A: Try broadening your search — remove one filter at a time. For specialty searches, make sure you are using a taxonomy code, not a description word. Also note the search matches the *beginning* of names (e.g. `SMITH` also returns `SMITHA`).
+A: Try broadening your search — remove one filter at a time. For specialty description searches, try a broader or different term (e.g. "cardiovascular" instead of "interventional cardiology"). You can also check [nucc.org](https://www.nucc.org) for the exact taxonomy code and use that instead.
 
 **Q: Can I use this for automated/bulk lookups?**
 A: For bulk automation, contact the server maintainer about API access. Claude is best suited for individual lookups and small batch queries.
