@@ -766,10 +766,8 @@ A: The database includes all records from NPPES. Provider status (active/inactiv
 A: Try broadening your search — remove one filter at a time. For specialty description searches, try a broader or different term (e.g. "cardiovascular" instead of "interventional cardiology"). You can also check [nucc.org](https://www.nucc.org) for the exact taxonomy code and use that instead.
 
 **Q: Can I use this for automated/bulk lookups?**
-A: For bulk automation, contact the server maintainer about API access. Claude is best suited for individual lookups and small batch queries.
+A: For bulk automation, contact the zapper edge about API access. Claude is best suited for individual lookups and small batch queries.
 
-**Q: My MCP client isn't listed. Will it work?**
-A: Any MCP client that supports SSE transport should work. Use the SSE URL: `https://npimcpserver.zapperedge.com/sse`
 
 **Q: How current is the OIG exclusion data?**
 A: The server downloads the OIG LEIE `UPDATED.csv` file from `oig.hhs.gov` on startup and refreshes it every 28 days. The OIG publishes a new version monthly. You can see the last download date by asking *"Check the NPI database status"*.
