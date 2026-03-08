@@ -1,9 +1,9 @@
-# NPI Lookup Tool — User Manual for Heath Care Professionals
+# NPI Lookup Tool — User Manual for Health Care Professionals
 
 A free, AI-powered NPI registry lookup tool that lets you search **9.3 million+ US healthcare providers** directly inside Claude AI. No login, no subscription, no forms to fill out.
 
-**Server:** `https://npimcpserver.zapperedge.com/sse`  
-**Data Source:** CMS NPPES (updated weekly)  
+**Server:** `https://npimcpserver.zapperedge.com/sse`
+**Data Source:** CMS NPPES (updated weekly)
 **Last Verified:** March 2026
 
 ---
@@ -28,10 +28,12 @@ A free, AI-powered NPI registry lookup tool that lets you search **9.3 million+ 
 | Look up a provider by NPI | *"Look up NPI 1083738934"* |
 | Verify an NPI is valid | *"Is NPI 1234567890 valid?"* |
 | Find doctors by name & state | *"Find Dr. Smith in California"* |
-| Find specialists by taxonomy | *"Find cardiologists in Houston TX"* |
-| Find hospitals & clinics | *"Find hospitals in Brooklyn NY"* |
+| Find specialists by taxonomy code | *"Find providers with taxonomy 207RC0000X in Houston TX"* |
+| Find hospitals & clinics | *"Find organizations with Hospital in the name in Brooklyn NY"* |
 | Search by ZIP code | *"Find providers in ZIP 90210"* |
 | Verify a provider's specialty | *"What specialty is NPI 1538283494?"* |
+
+> **Important — Specialty Searches:** The NPPES dataset does not include human-readable specialty descriptions — only taxonomy codes (e.g. `207RC0000X`). Searching a word like "cardiology" will not return results. Always use the taxonomy code. See the [Common Taxonomy Codes](#common-taxonomy-codes-for-medical-coders) table below.
 
 ---
 
@@ -52,9 +54,6 @@ Go to **[claude.ai](https://claude.ai)** and sign up for a free account if you d
 1. Log in to **[claude.ai](https://claude.ai)**
 2. Click your **profile icon** (top right corner)
 3. Click **Settings**
-
-   [Settings Menu](https://via.placeholder.com/600x100/f0f0f0/333?text=Profile+Icon+→+Settings)
-
 4. In the left sidebar, click **Connectors**
 5. Click the **"+ Add connector"** or **"Add MCP Server"** button
 6. Fill in the form:
@@ -78,9 +77,9 @@ Go to **[claude.ai](https://claude.ai)** and sign up for a free account if you d
    Check the NPI database status
    ```
 3. Claude should respond with something like:
-   > *"The NPI database is ready with 9,368,082 records, last updated March 6, 2026..."*
+   > *"The NPI database is ready with 9,368,082 records, last updated March 8, 2026..."*
 
- **You're connected!** You can now search the full NPI registry by just talking to Claude.
+**You're connected!** You can now search the full NPI registry by just talking to Claude.
 
 ---
 
@@ -186,15 +185,17 @@ Expected: Record count ~9.3 million, status "ready"
 ```
 Look up NPI 1083738934
 ```
-Expected: Returns "Lois M., Registered Nurse, Oakland CA"
+Expected: Returns "Lois M Lumpkin, Registered Nurse, Martinez CA"
 
 **Check 3 — Search works:**
 ```
-Find cardiologists in Modesto CA
+Find providers with taxonomy 207RC0000X in Modesto CA
 ```
-Expected: Returns a list of cardiologists with addresses and phone numbers
+Expected: Returns a list of cardiovascular disease (cardiology) providers with addresses and phone numbers
 
-If all 3 pass — you're good to go! 
+> Note: Use the taxonomy code `207RC0000X`, not the word "cardiology". See [Why Taxonomy Codes Are Required](#faq) in the FAQ.
+
+If all 3 pass — you're good to go!
 
 ---
 
@@ -241,15 +242,18 @@ Look for a nurse named Catherine in California
 
 ### Find by Name + Specialty
 ```
-Find cardiologists named Smith in Florida
+Find providers with last name Smith and taxonomy 207RC0000X in Florida
 ```
 ```
-Search for Dr. Williams who is an orthopedic surgeon in Chicago IL
+Search for Dr. Williams with taxonomy 207X00000X in Chicago IL
 ```
 
 ---
 
 ### Find Specialists by Taxonomy Code
+
+> **Specialty searches require taxonomy codes.** The NPPES database stores taxonomy codes only — descriptions like "cardiology" or "surgeon" are not stored and cannot be searched. Use the code table below.
+
 ```
 Find providers with taxonomy 207RC0000X in Houston TX
 ```
@@ -257,34 +261,36 @@ Find providers with taxonomy 207RC0000X in Houston TX
 Search for taxonomy 207Q00000X in ZIP code 900*
 ```
 
-> **Common Taxonomy Codes for Medical Coders:**
->
-> | Code | Specialty |
-> |------|-----------|
-> | `207RC0000X` | Cardiovascular Disease (Cardiology) |
-> | `207Q00000X` | Family Medicine |
-> | `207R00000X` | Internal Medicine |
-> | `207X00000X` | Orthopedic Surgery |
-> | `207N00000X` | Dermatology |
-> | `207V00000X` | Obstetrics & Gynecology |
-> | `207T00000X` | Neurological Surgery |
-> | `2084P0800X` | Psychiatry |
-> | `208600000X` | Surgery (General) |
-> | `163W00000X` | Registered Nurse |
-> | `363L00000X` | Nurse Practitioner |
-> | `363A00000X` | Physician Assistant |
+#### Common Taxonomy Codes for Medical Coders
+
+| Code | Specialty |
+|------|-----------|
+| `207RC0000X` | Cardiovascular Disease (Cardiology) |
+| `207Q00000X` | Family Medicine |
+| `207R00000X` | Internal Medicine |
+| `207X00000X` | Orthopedic Surgery |
+| `207N00000X` | Dermatology |
+| `207V00000X` | Obstetrics & Gynecology |
+| `207T00000X` | Neurological Surgery |
+| `2084P0800X` | Psychiatry |
+| `208600000X` | Surgery (General) |
+| `163W00000X` | Registered Nurse |
+| `363L00000X` | Nurse Practitioner |
+| `363A00000X` | Physician Assistant |
+
+> Full taxonomy code list: [nucc.org](https://www.nucc.org/index.php/code-sets-mainmenu-41/provider-taxonomy-mainmenu-40)
 
 ---
 
 ### Find Hospitals & Organizations
 ```
-Find hospitals in Brooklyn NY
+Find organizations with Hospital in the name in Brooklyn NY
 ```
 ```
-Search for medical centers in ZIP code 606*
+Find NPI-2 organizations with MERCY in the name in state OH
 ```
 ```
-Find NPI-2 organizations named MERCY in state OH
+Find organizations with Medical Center in ZIP code 606*
 ```
 
 ---
@@ -322,34 +328,34 @@ Use these to verify the tool works correctly for billing and coding scenarios.
 ```
 Validate NPI 1538283494
 ```
-**Expected result:**  Valid — format correct, Luhn check digit passes
+**Expected result:** Valid — format correct, Luhn check digit passes
 
 ---
 
-###  Test 2 — Validate a Bad NPI
+### Test 2 — Validate a Bad NPI
 **Prompt:**
 ```
 Validate NPI 1234567890
 ```
-**Expected result:**  Invalid — fails Luhn check digit (useful for catching claim errors)
+**Expected result:** Invalid — fails Luhn check digit (useful for catching claim errors)
 
 ---
 
-###  Test 3 — Look Up an Individual Provider
+### Test 3 — Look Up an Individual Provider
 **Prompt:**
 ```
 Look up NPI 1538283494
 ```
 **Expected result:**
-- Name: Liane Catherine, O.D.
+- Name: Catherine Liane Winter, O.D.
 - Type: Individual
-- Specialty: Optometry
+- Specialty: Optometry (taxonomy `152W00000X`)
 - Location: 1630 N Main St, Salinas, CA 93906
 - Phone: (831) 443-4422
 
 ---
 
-###  Test 4 — Look Up an Organization (NPI-2)
+### Test 4 — Look Up an Organization (NPI-2)
 **Prompt:**
 ```
 Look up NPI 1689614562
@@ -361,7 +367,7 @@ Look up NPI 1689614562
 
 ---
 
-###  Test 5 — Find a Provider by Name and State
+### Test 5 — Find a Provider by Name and State
 **Prompt:**
 ```
 Find providers with last name JOHNSON in New York
@@ -370,16 +376,18 @@ Find providers with last name JOHNSON in New York
 
 ---
 
-###  Test 6 — Find Specialists in a City
+### Test 6 — Find Specialists in a City
 **Prompt:**
 ```
-Find cardiologists in Modesto California
+Find providers with taxonomy 207RC0000X in Modesto California
 ```
-**Expected result:** List of cardiologists (taxonomy 207RC0000X) practicing in Modesto CA
+**Expected result:** List of cardiovascular disease (cardiology) providers in Modesto CA
+
+> Use the taxonomy code directly. Searching "cardiologists" as a word will not return results.
 
 ---
 
-###  Test 7 — Find Hospitals in a State
+### Test 7 — Find Hospitals in a State
 **Prompt:**
 ```
 Find NPI-2 organizations with HOSPITAL in the name in New York state
@@ -388,7 +396,7 @@ Find NPI-2 organizations with HOSPITAL in the name in New York state
 
 ---
 
-###  Test 8 — Search by ZIP Code
+### Test 8 — Search by ZIP Code
 **Prompt:**
 ```
 Find providers in ZIP code 10001
@@ -397,7 +405,7 @@ Find providers in ZIP code 10001
 
 ---
 
-###  Test 9 — Wildcard Name Search
+### Test 9 — Wildcard Name Search
 **Prompt:**
 ```
 Find providers with last name starting with JOHN in California, limit 5
@@ -406,16 +414,16 @@ Find providers with last name starting with JOHN in California, limit 5
 
 ---
 
-###  Test 10 — Verify Provider Specialty
+### Test 10 — Verify Provider Specialty
 **Prompt:**
 ```
 What specialty does NPI 1962485938 practice?
 ```
-**Expected result:** Mohamed Hassan, MD — Cardiovascular Disease (Cardiology), Modesto CA
+**Expected result:** Mohamed Hassan, MD — Cardiovascular Disease (taxonomy `207RC0000X`), Modesto CA
 
 ---
 
-###  Test 11 — Confirm Provider is Active in a State
+### Test 11 — Confirm Provider is Active in a State
 **Prompt:**
 ```
 Is there a provider named WINTER practicing in California?
@@ -424,7 +432,7 @@ Is there a provider named WINTER practicing in California?
 
 ---
 
-###  Test 12 — Pagination Test
+### Test 12 — Pagination Test
 **Prompt:**
 ```
 Find providers with last name PATEL in California, show 5 results
@@ -437,7 +445,7 @@ Show the next 5
 
 ---
 
-###  Quick Pass Checklist
+### Quick Pass Checklist
 
 | # | Test | Pass if... |
 |---|------|------------|
@@ -446,7 +454,7 @@ Show the next 5
 | 3 | Lookup individual | Returns full provider details |
 | 4 | Lookup organization | Returns org name and address |
 | 5 | Name + state search | Returns provider list |
-| 6 | City + specialty | Returns specialists in that city |
+| 6 | City + taxonomy code | Returns specialists in that city |
 | 7 | Hospital org search | Returns hospital organizations |
 | 8 | ZIP code search | Returns providers in that ZIP |
 | 9 | Wildcard search | Returns multiple name variants |
@@ -454,29 +462,31 @@ Show the next 5
 | 11 | State provider check | Returns providers in state |
 | 12 | Pagination | Page 2 has different results than page 1 |
 
-All 12 passing =  Tool is fully working for medical coding use.
+All 12 passing = Tool is fully working for medical coding use.
 
 ---
 
 ## Tips & Tricks
 
-** Be conversational** — You don't need to use exact commands. Just ask naturally:
+**Be conversational** — You don't need to use exact commands. Just ask naturally:
 > *"I need to verify the NPI for a cardiologist in Houston"*
 > *"Can you find all the orthopedic surgeons in ZIP 60601?"*
 
-** Use taxonomy codes for precision** — When specialty name searches don't return what you expect, use the exact taxonomy code (see table above).
+**Always use taxonomy codes for specialty searches** — The database stores codes, not descriptions. Searching "cardiology", "surgeon", or "dermatologist" will return no results. Use the exact code:
+> Instead of: *"Find cardiologists in Houston"*
+> Use: *"Find providers with taxonomy 207RC0000X in Houston TX"*
 
-** Narrow down large results** — If you get too many results, add more filters:
-> *"Find Smith in CA"* → too many results  
-> *"Find Dr. Smith who is a surgeon in Los Angeles CA"* → more specific
+**Narrow down large results** — If you get too many results, add more filters:
+> *"Find Smith in CA"* → too many results
+> *"Find Dr. Smith with taxonomy 208600000X in Los Angeles CA"* → more specific
 
-** Wildcard for partial matches** — Add `*` to catch name variations:
+**Wildcard for partial matches** — Add `*` to catch name variations:
 > `JOHN*` matches JOHN, JOHNSON, JOHNSTONE, JOHNS
 
-** ZIP prefix search** — Use `900*` to search an entire area code prefix:
+**ZIP prefix search** — Use `900*` to search an entire area code prefix:
 > `900*` = all ZIP codes from 90000–90099 (West LA area)
 
-** Verify before submitting claims** — Always confirm:
+**Verify before submitting claims** — Always confirm:
 1. NPI is valid (passes Luhn check)
 2. Provider specialty matches what was billed
 3. Practice address matches claim address
@@ -485,30 +495,33 @@ All 12 passing =  Tool is fully working for medical coding use.
 
 ## FAQ
 
-**Q: Is this data official and up to date?**  
+**Q: Is this data official and up to date?**
 A: Yes. Data comes directly from CMS NPPES and is refreshed every 7 days. It's the same source as the official NPI Registry at nppes.cms.hhs.gov.
 
-**Q: Is it free to use?**  
+**Q: Is it free to use?**
 A: Yes, completely free. The MCP server is hosted and open for public testing. Claude has a free tier at claude.ai.
 
-**Q: How current is the data?**  
+**Q: How current is the data?**
 A: Updated weekly from CMS. You can ask *"Check the NPI database status"* to see the exact last update date.
 
-**Q: Can I look up deactivated or deactivated NPIs?**  
-A: The database includes all records from NPPES. Provider status (active/inactive) is shown in the results.
+**Q: Why can't I search by specialty name like "cardiologist" or "surgeon"?**
+A: The NPPES dataset does not include human-readable specialty descriptions — only taxonomy codes like `207RC0000X`. The raw data published by CMS omits the description column entirely. To search by specialty, use the taxonomy code. See the [Common Taxonomy Codes](#common-taxonomy-codes-for-medical-coders) table above, or look up any code at [nucc.org](https://www.nucc.org/index.php/code-sets-mainmenu-41/provider-taxonomy-mainmenu-40).
 
-**Q: What if I get no results?**  
-A: Try broadening your search — remove one filter at a time. Also note the search matches the *beginning* of names (e.g. `SMITH` also returns `SMITHA`).
+**Q: Can I look up deactivated NPIs?**
+A: The database includes all records from NPPES. Provider status (active/inactive) is included in the results.
 
-**Q: Can I use this for automated/bulk lookups?**  
+**Q: What if I get no results?**
+A: Try broadening your search — remove one filter at a time. For specialty searches, make sure you are using a taxonomy code, not a description word. Also note the search matches the *beginning* of names (e.g. `SMITH` also returns `SMITHA`).
+
+**Q: Can I use this for automated/bulk lookups?**
 A: For bulk automation, contact the server maintainer about API access. Claude is best suited for individual lookups and small batch queries.
 
-**Q: My MCP client isn't listed. Will it work?**  
+**Q: My MCP client isn't listed. Will it work?**
 A: Any MCP client that supports SSE transport should work. Use the SSE URL: `https://npimcpserver.zapperedge.com/sse`
 
 ---
 
-##  Support
+## Support
 
 If the server is down or returning errors:
 - Check server status: `https://npimcpserver.zapperedge.com/health`
